@@ -19,49 +19,49 @@ importers:
         version: 4.2.11
     devDependencies:
       '@babel/types':
-        specifier: ^7.27.0
+        specifier: 7.27.0
         version: 7.27.0
       '@types/babel__traverse':
-        specifier: ^7.20.7
+        specifier: 7.20.7
         version: 7.20.7
       '@types/glob':
-        specifier: ^8.1.0
+        specifier: 8.1.0
         version: 8.1.0
       '@types/graceful-fs':
-        specifier: ^4.1.9
+        specifier: 4.1.9
         version: 4.1.9
       '@types/mocha':
-        specifier: ^10.0.10
+        specifier: 10.0.10
         version: 10.0.10
       '@types/node':
-        specifier: ~16.18.126
+        specifier: 16.18.126
         version: 16.18.126
       '@types/vscode':
-        specifier: ^1.98.0
+        specifier: 1.98.0
         version: 1.98.0
       '@typescript-eslint/eslint-plugin':
-        specifier: ^7.0.0
+        specifier: 7.18.0
         version: 7.18.0(@typescript-eslint/parser@7.18.0(eslint@9.23.0)(typescript@5.8.2))(eslint@9.23.0)(typescript@5.8.2)
       '@typescript-eslint/parser':
-        specifier: ^7.0.0
+        specifier: 7.18.0
         version: 7.18.0(eslint@9.23.0)(typescript@5.8.2)
       '@vscode/test-electron':
-        specifier: ^2.4.1
+        specifier: 2.4.1
         version: 2.4.1
       esbuild:
-        specifier: ^0.17.19
+        specifier: 0.17.19
         version: 0.17.19
       eslint:
-        specifier: ^9.0.0
+        specifier: 9.23.0
         version: 9.23.0
       glob:
-        specifier: ^8.1.0
+        specifier: 8.1.0
         version: 8.1.0
       mocha:
-        specifier: ^10.8.2
+        specifier: 10.8.2
         version: 10.8.2
       typescript:
-        specifier: ^5.8.2
+        specifier: 5.8.2
         version: 5.8.2
 
 packages:
