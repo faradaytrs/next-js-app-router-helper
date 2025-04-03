@@ -8,12 +8,26 @@ import { ImportDeclaration, Directive, File } from "@babel/types";
 
 const isClientComponentCache: Record<string, boolean> = {};
 const checkingStack: string[] = [];
+const projectRootsCache: string[] = [];
 
-function getTsConfigPathAliases(): Record<string, string> {
-    if (!vscode?.workspace?.workspaceFolders?.length) {
-        return {};
+function getProjectRoots(): string[] {
+    const config = vscode.workspace.getConfiguration('nextJsAppRouterHelper');
+    const configuredRoots = config.get<string[]>('projectRoots') || [];
+    
+    if (configuredRoots.length > 0) {
+        return configuredRoots;
     }
-    const tsConfigPath = nodepath.join(vscode.workspace.workspaceFolders[0].uri.fsPath, "tsconfig.json");
+    
+    if (!vscode?.workspace?.workspaceFolders?.length) {
+        throw new Error('No workspace folder found');
+    }
+    
+    // By default, use the first workspace folder like in the original implementation
+    return [vscode.workspace.workspaceFolders[0].uri.fsPath];
+}
+
+function getTsConfigPathAliases(projectRoot: string): Record<string, string> {
+    const tsConfigPath = nodepath.join(projectRoot, "tsconfig.json");
     try {
         const tsConfigContents = fs.readFileSync(tsConfigPath, "utf-8");
         const tsConfig = JSON.parse(tsConfigContents);
@@ -23,7 +37,7 @@ function getTsConfigPathAliases(): Record<string, string> {
         const aliases: Record<string, string> = {};
         for (const alias in paths) {
             aliases[alias] = nodepath.resolve(
-                vscode.workspace.workspaceFolders[0].uri.fsPath,
+                projectRoot,
                 baseUrl,
                 paths[alias][0]
             );
@@ -36,10 +50,8 @@ function getTsConfigPathAliases(): Record<string, string> {
     }
 }
 
-const aliases = getTsConfigPathAliases();
-
 //check all components in the project
-async function scanProjectForClientComponents(folderPath: string): Promise<void> {
+async function scanProjectForClientComponents(folderPath: string, aliases: Record<string, string>): Promise<void> {
     const entries = await fs.promises.readdir(folderPath, { withFileTypes: true });
 
     for (const entry of entries) {
@@ -50,9 +62,9 @@ async function scanProjectForClientComponents(folderPath: string): Promise<void>
             }
 
             if (entry.isDirectory()) {
-                await scanProjectForClientComponents(fullEntryPath);
+                await scanProjectForClientComponents(fullEntryPath, aliases);
             } else if (entry.isFile() && (entry.name.endsWith(".tsx") || entry.name.endsWith(".jsx"))) {
-                await isClientComponent(fullEntryPath);
+                await isClientComponent(fullEntryPath, aliases);
             }
         } catch (error) {
             vscode.window.showErrorMessage(`Error while scanning ${entry.name}: ${error}`);
@@ -61,7 +73,7 @@ async function scanProjectForClientComponents(folderPath: string): Promise<void>
 }
 
 //check for client directive in component
-async function isClientComponent(filePath: string): Promise<boolean> {
+async function isClientComponent(filePath: string, aliases: Record<string, string>): Promise<boolean> {
     //mark component and all its imports as client components
     async function markComponentAsClient(filePath: string, astProp?: babel.ParseResult<File>) {
         if (checkingStack.includes(filePath)) {
@@ -144,19 +156,16 @@ async function isClientComponent(filePath: string): Promise<boolean> {
     return isClientComponentCache[filePath];
 }
 
-function checkIfNextProject() {
+function checkIfNextProject(projectRoot: string): boolean {
     try {
-        const packageJson = JSON.parse(fs.readFileSync(vscode.workspace.rootPath + "/package.json").toString());
+        const packageJson = JSON.parse(fs.readFileSync(nodepath.join(projectRoot, "package.json")).toString());
         const nextVersion = packageJson.dependencies?.next || packageJson.devDependencies?.next;
 
         if (!nextVersion) {
-            vscode.window.showErrorMessage("Not a Next.js project");
             return false;
-        } else {
-            return true;
         }
+        return true;
     } catch {
-        vscode.window.showErrorMessage("Could not find package.json");
         return false;
     }
 }
@@ -166,24 +175,16 @@ export async function activate(context: vscode.ExtensionContext) {
         return;
     }
 
-    const isNextProject = checkIfNextProject();
+    const projectRoots = getProjectRoots();
+    const validNextProjects = projectRoots.filter(checkIfNextProject);
 
-    if (!isNextProject) {
+    if (validNextProjects.length === 0) {
+        vscode.window.showErrorMessage("No valid Next.js projects found in the configured roots");
         return;
     }
 
-    const projectFolder = vscode.workspace.workspaceFolders[0].uri.fsPath;
     const statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 1000);
-    statusBarItem.text = "Scanning project for client components...";
-
-    scanProjectForClientComponents(projectFolder)
-        .then(() => {
-            vscode.window.showInformationMessage("Scan complete!");
-            updateStatusBarItem(vscode.window.activeTextEditor);
-        })
-        .catch((error) => {
-            console.error("Error during project scan", error);
-        });
+    statusBarItem.text = "Scanning projects for client components...";
 
     const updateStatusBarItem = (editor: vscode.TextEditor | undefined) => {
         if (editor) {
@@ -199,13 +200,29 @@ export async function activate(context: vscode.ExtensionContext) {
         }
     };
 
+    // Scan each project root
+    for (const projectRoot of validNextProjects) {
+        const aliases = getTsConfigPathAliases(projectRoot);
+        await scanProjectForClientComponents(projectRoot, aliases);
+    }
+
+    vscode.window.showInformationMessage("Scan complete!");
+    updateStatusBarItem(vscode.window.activeTextEditor);
+
     context.subscriptions.push(
         vscode.commands.registerCommand("extension.scan", async () => {
-            if (!isNextProject) {
-                return;
+            // Clear cache before rescanning
+            Object.keys(isClientComponentCache).forEach(key => delete isClientComponentCache[key]);
+            checkingStack.length = 0;
+
+            // Scan each project root
+            for (const projectRoot of validNextProjects) {
+                const aliases = getTsConfigPathAliases(projectRoot);
+                await scanProjectForClientComponents(projectRoot, aliases);
             }
 
-            await scanProjectForClientComponents(projectFolder);
+            vscode.window.showInformationMessage("Scan complete!");
+            updateStatusBarItem(vscode.window.activeTextEditor);
         })
     );
 

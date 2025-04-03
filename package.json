@@ -29,7 +29,20 @@
         "command": "extension.scan",
         "title": "Scan and Check Component Types"
       }
-    ]
+    ],
+    "configuration": {
+      "title": "Next.js App Router Helper",
+      "properties": {
+        "nextJsAppRouterHelper.projectRoots": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [],
+          "description": "Array of root paths for your Next.js projects. If empty, the first workspace folder will be used (original behavior). Useful for monorepo setups where you have multiple Next.js projects."
+        }
+      }
+    }
   },
   "scripts": {
     "vscode:prepublish": "npm run esbuild-base -- --minify",
