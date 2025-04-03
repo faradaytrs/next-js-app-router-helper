@@ -1,0 +1,21 @@
+{
+    "extends": ["config:recommended"],
+    "automerge": true,
+    "automergeType": "branch",
+    "labels": ["renovate"],
+    "timezone": "Asia/Shanghai",
+    "ignoreTests": true,
+    "packageRules": [
+        {
+            "matchUpdateTypes": ["major"],
+            "automergeType": "pr",
+            "automerge": false
+        },
+        {
+            "groupName": "vercel ai-sdk",
+            "groupSlug": "vercel ai-sdk",
+            "matchPackageNames": ["ai", "/@ai-sdk/*/"]
+        }
+    ],
+    "configMigration": true
+}
