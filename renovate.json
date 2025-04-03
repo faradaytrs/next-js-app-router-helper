@@ -7,6 +7,10 @@
     "ignoreTests": true,
     "packageRules": [
         {
+            "matchDatasources": ["npm"],
+            "rangeStrategy": "pin"
+        },
+        {
             "matchUpdateTypes": ["major"],
             "automergeType": "pr",
             "automerge": false
