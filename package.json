@@ -67,7 +67,7 @@
     "eslint": "9.23.0",
     "glob": "8.1.0",
     "mocha": "10.8.2",
-    "typescript": "5.8.2"
+    "typescript": "5.8.3"
   },
   "dependencies": {
     "@babel/parser": "7.27.0",
