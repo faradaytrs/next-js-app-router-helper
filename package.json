@@ -53,7 +53,7 @@
     "test-compile": "tsc -p ./"
   },
   "devDependencies": {
-    "@babel/types": "7.27.1",
+    "@babel/types": "7.27.3",
     "@types/babel__traverse": "7.20.7",
     "@types/glob": "8.1.0",
     "@types/graceful-fs": "4.1.9",
@@ -70,8 +70,8 @@
     "typescript": "5.8.3"
   },
   "dependencies": {
-    "@babel/parser": "7.27.2",
-    "@babel/traverse": "7.27.1",
+    "@babel/parser": "7.27.4",
+    "@babel/traverse": "7.27.4",
     "graceful-fs": "4.2.11"
   },
   "packageManager": "pnpm@9.15.9+sha512.68046141893c66fad01c079231128e9afb89ef87e2691d69e4d40eee228988295fd4682181bae55b58418c3a253bde65a505ec7c5f9403ece5cc3cd37dcf2531"
